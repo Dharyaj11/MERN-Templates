@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from "react";
 import config from '../../config';
+import Loader from "../loader/Loader";
 
 function ApiCalls() {
   const [items, setItems] = useState([]); 
   const [newItem, setNewItem] = useState(""); 
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const fetchItems = async () => {
+    setLoading(true);
     try {
       const response = await fetch(`${config.apiUrl}/api/items`); 
       if (!response.ok) {
@@ -14,9 +17,12 @@ function ApiCalls() {
       }
       const data = await response.json();
       setItems(data); 
-      console.log(data);
+      // console.log(data);
     } catch (error) {
       setError(error.message);
+    }
+    finally {
+      setLoading(false);
     }
   };
 
@@ -28,7 +34,7 @@ function ApiCalls() {
 
   const addItem = async (e) => {
     e.preventDefault(); 
-
+    setLoading(true);
     try {
       const response = await fetch(`${config.apiUrl}/api/items`, { 
         method: "POST",
@@ -47,31 +53,39 @@ function ApiCalls() {
     } catch (error) {
       setError(error.message);
     }
+    finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div>
-      <h1>Items List</h1>
-      {/* Used to display errors.  */}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <ul>
-        {items.map((item, index) => (
-          <li key={index}>{item.name}</li> 
-        ))}
-      </ul>
-
-      <h2>Add New Item</h2>
-      <form onSubmit={addItem}>
-        <input
-          type="text"
-          value={newItem}
-          onChange={(e) => setNewItem(e.target.value)}
-          placeholder="Enter item name"
-          required
-        />
-        <button type="submit">Add Item</button>
-      </form>
-    </div>
+    <>
+      {
+        loading ? (<Loader />)
+          : (<div>
+            <h1>Items List</h1>
+            {/* Used to display errors.  */}
+            {error && <p style={{ color: "red" }}>{error}</p>}
+            <ul>
+              {items.map((item, index) => (
+                <li key={index}>{item.name}</li> 
+              ))}
+            </ul>
+      
+            <h2>Add New Item</h2>
+            <form onSubmit={addItem}>
+              <input
+                type="text"
+                value={newItem}
+                onChange={(e) => setNewItem(e.target.value)}
+                placeholder="Enter item name"
+                required
+              />
+              <button type="submit">Add Item</button>
+            </form>
+          </div>)
+      }
+    </>
   );
 }
 
